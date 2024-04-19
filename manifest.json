@@ -1,0 +1,15 @@
+{
+    "manifest_version": 2,
+    "name": "Improve English",
+    "version": "1.0",
+    "description": "Improves the selected text as if an English teacher wrote it",
+    "permissions": [
+      "contextMenus",
+      "activeTab",
+      "https://api.openai.com/"
+    ],
+    "background": {
+      "scripts": ["background.js"],
+      "persistent": false
+    }
+  }
