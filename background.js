@@ -36,14 +36,9 @@ chrome.contextMenus.onClicked.addListener(function(info, tab) {
           chrome.runtime.onMessage.removeListener(currentListener);
         }
 
-        // Create a function to handle the onRemoved event
-        const handlePopupWindowRemoved = function(windowId) {
-          if (windowId === currentWindowId) {
-            currentWindowId = null;
-            currentListener = null;
-          }
-        };
-
+        currentWindowId = null;
+        currentListener = null;
+        
         chrome.windows.create({
           url: "popup.html",
           type: "popup",
