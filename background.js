@@ -15,7 +15,7 @@ chrome.contextMenus.create({
 
 chrome.contextMenus.onClicked.addListener(function(info, tab) {
   if (info.menuItemId === "improveEnglish") {
-    handleSelection(info.selectionText, 'gpt-3.5-turbo', 0.7); // Use default temperature of 0.7
+    handleSelection(info.selectionText, 'gpt-3.5-turbo', 0.6); // Use default temperature of 0.6
   } else if (info.menuItemId === "improveEnglishCreative") {
     handleSelection(info.selectionText, 'gpt-3.5-turbo', 0.9); // Use higher temperature of 0.9 for creative output
   }

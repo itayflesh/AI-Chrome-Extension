@@ -1,6 +1,6 @@
 {
     "manifest_version": 2,
-    "name": "Improve English",
+    "name": "AIEverywhere",
     "version": "1.0",
     "description": "Improves the selected text as if an English teacher wrote it",
     "permissions": [
