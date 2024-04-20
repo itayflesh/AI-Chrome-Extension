@@ -19,15 +19,23 @@ chrome.contextMenus.create({
   contexts: ["selection"]
 });
 
-chrome.contextMenus.onClicked.addListener(function(info, tab) {
-  if (info.menuItemId === "improveEnglish") {
-    handleSelection(info.selectionText, 'gpt-3.5-turbo', 0.6);
-  } else if (info.menuItemId === "improveEnglishCreative") {
-    handleSelection(info.selectionText, 'gpt-3.5-turbo', 0.9);
-  } else if (info.menuItemId === "addCommentsToCode") {
-    handleCodeComments(info.selectionText);
-  }
-});
+chrome.contextMenus.create({
+    id: "summarizeToSingleParagraph",
+    title: "Summarize to a single paragraph",
+    contexts: ["selection"]
+  });
+
+  chrome.contextMenus.onClicked.addListener(function(info, tab) {
+    if (info.menuItemId === "improveEnglish") {
+      handleSelection(info.selectionText, 'gpt-3.5-turbo', 0.6);
+    } else if (info.menuItemId === "improveEnglishCreative") {
+      handleSelection(info.selectionText, 'gpt-3.5-turbo', 0.9);
+    } else if (info.menuItemId === "addCommentsToCode") {
+      handleCodeComments(info.selectionText);
+    } else if (info.menuItemId === "summarizeToSingleParagraph") {
+      handleSummarize(info.selectionText);
+    }
+  });
 
 function handleSelection(selectedText, apiModel, temperature) {
   var messages = [
@@ -184,3 +192,59 @@ async function handleCodeComments(selectedText) {
       console.error(error);
     }
   }
+
+  function handleSummarize(selectedText) {
+    const messages = [
+      {
+        role: "system",
+        content: "You are a text summarizer. Your task is to summarize the given text into a single paragraph."
+      },
+      {
+        role: "user",
+        content: `Summarize the following text into a single paragraph:\n\n${selectedText}`
+      }
+    ];
+  
+    fetchChatCompletion(messages, 'sk-proj-wQ4taTDDFhbuDrmkqIlOT3BlbkFJlJVo8Zlx0wucOcJ2atou', 'gpt-3.5-turbo', 0.6)
+      .then(data => {
+        const summary = data.choices[0].message.content.trim();
+        console.log("Summary:", summary);
+  
+        // Close the previous window if it exists
+        if (currentWindowId !== null) {
+          chrome.windows.remove(currentWindowId);
+        }
+  
+        // Remove the previous listener if it exists
+        if (currentListener !== null) {
+          chrome.runtime.onMessage.removeListener(currentListener);
+        }
+  
+        currentWindowId = null;
+        currentListener = null;
+  
+        chrome.windows.create({
+          url: "popup.html",
+          type: "popup",
+          width: 400,
+          height: 300
+        }, function(window) {
+          currentWindowId = window.id;
+  
+          // Create a new listener with a closure
+          currentListener = function handleMessage(request, sender, sendResponse) {
+            if (request.action === "getImprovedText") {
+              sendResponse({ text: summary });
+            }
+          };
+          chrome.runtime.onMessage.addListener(currentListener);
+  
+          // Listen for the window being closed programmatically or manually
+          chrome.windows.onRemoved.addListener(handlePopupWindowRemoved);
+          window.onRemoved.addListener(handlePopupWindowRemoved);
+        });
+      })
+      .catch(error => {
+        console.error("Error:", error);
+      });
+  } 
