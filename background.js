@@ -25,6 +25,12 @@ chrome.contextMenus.create({
     contexts: ["selection"]
   });
 
+  chrome.contextMenus.create({
+    id: "generateQuiz",
+    title: "AI Quiz",
+    contexts: ["selection"]
+  });
+
   chrome.contextMenus.onClicked.addListener(function(info, tab) {
     if (info.menuItemId === "improveEnglish") {
       handleSelection(info.selectionText, 'gpt-3.5-turbo', 0.6);
@@ -34,7 +40,9 @@ chrome.contextMenus.create({
       handleCodeComments(info.selectionText);
     } else if (info.menuItemId === "summarizeToSingleParagraph") {
       handleSummarize(info.selectionText);
-    }
+    } else if (info.menuItemId === "generateQuiz") {
+        handleGenerateQuiz(info.selectionText);
+      }
   });
 
 function handleSelection(selectedText, apiModel, temperature) {
@@ -248,3 +256,59 @@ async function handleCodeComments(selectedText) {
         console.error("Error:", error);
       });
   } 
+
+  async function handleGenerateQuiz(selectedText) {
+    const messages = [
+      {
+        role: "system",
+        content: "You are an AI assistant that generates multiple-choice quizzes based on given text."
+      },
+      {
+        role: "user",
+        content: `Generate a quiz with 10 multiple-choice questions (with 4 options each) and add '-correct' to the relevant answer based on the following text:\n\n${selectedText}`
+      }
+    ];
+  
+    try {
+      const response = await fetchChatCompletion(messages, 'sk-proj-wQ4taTDDFhbuDrmkqIlOT3BlbkFJlJVo8Zlx0wucOcJ2atou', 'gpt-3.5-turbo', 0.7);
+      const quizQuestions = response.choices[0].message.content.trim();
+  
+      console.log("Quiz Questions:", quizQuestions);
+  
+      // Close the previous window if it exists
+      if (currentWindowId !== null) {
+        chrome.windows.remove(currentWindowId);
+      }
+  
+      // Remove the previous listener if it exists
+      if (currentListener !== null) {
+        chrome.runtime.onMessage.removeListener(currentListener);
+      }
+  
+      currentWindowId = null;
+      currentListener = null;
+  
+      chrome.windows.create({
+        url: "popup.html",
+        type: "popup",
+        width: 400,
+        height: 300
+      }, function(window) {
+        currentWindowId = window.id;
+  
+        // Create a new listener with a closure
+        currentListener = function handleMessage(request, sender, sendResponse) {
+          if (request.action === "getImprovedText") {
+            sendResponse({ text: quizQuestions });
+          }
+        };
+        chrome.runtime.onMessage.addListener(currentListener);
+  
+        // Listen for the window being closed programmatically or manually
+        chrome.windows.onRemoved.addListener(handlePopupWindowRemoved);
+        window.onRemoved.addListener(handlePopupWindowRemoved);
+      });
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  }
