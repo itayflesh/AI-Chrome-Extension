@@ -97,7 +97,7 @@ async function handleCodeComments(selectedText) {
     const messages = [
       {
         role: "system",
-        content: "You are an expert code commentator. First, determine if the given text is a code snippet or not. If it is code, return  the code and add relevant comments to it  - add /n in the end of each line so my text editor will know the start new line. If it is not code, respond with a message saying that the provided text is not code."
+        content: "You are an expert code commentator. First, determine if the given text is a code snippet or not. If it is code, return extactly the same code and add relevant comments to it . If it is not code, respond with a message saying that the provided text is not code."
       },
       {
         role: "user",
