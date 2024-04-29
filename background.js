@@ -33,19 +33,19 @@ chrome.contextMenus.create({
 
   chrome.contextMenus.onClicked.addListener(function(info, tab) {
     if (info.menuItemId === "improveEnglish") {
-      handleSelection(info.selectionText, 'gpt-3.5-turbo', 0.6);
+      handleSelection(info.selectionText, 'gpt-3.5-turbo', 0.6 , "Improve English");
     } else if (info.menuItemId === "improveEnglishCreative") {
-      handleSelection(info.selectionText, 'gpt-3.5-turbo', 0.9);
+      handleSelection(info.selectionText, 'gpt-3.5-turbo', 0.9 , "Improve English - Creative ");
     } else if (info.menuItemId === "addCommentsToCode") {
-      handleCodeComments(info.selectionText);
+      handleCodeComments(info.selectionText , "add Comments To Code");
     } else if (info.menuItemId === "summarizeToSingleParagraph") {
-      handleSummarize(info.selectionText);
+      handleSummarize(info.selectionText , "summarize To Paragraph" );
     } else if (info.menuItemId === "generateQuiz") {
-        handleGenerateQuiz(info.selectionText);
+        handleGenerateQuiz(info.selectionText ,"Quiz" );
       }
   });
 
-function handleSelection(selectedText, apiModel, temperature) {
+function handleSelection(selectedText, apiModel, temperature , title) {
   var messages = [
     {
       role: "system",
@@ -85,7 +85,7 @@ function handleSelection(selectedText, apiModel, temperature) {
         // Create a new listener with a closure
         currentListener = function handleMessage(request, sender, sendResponse) {
           if (request.action === "getImprovedText") {
-            sendResponse({ text: improvedText });
+            sendResponse({ text: improvedText , title: title });
           }
         };
         chrome.runtime.onMessage.addListener(currentListener);
@@ -100,7 +100,7 @@ function handleSelection(selectedText, apiModel, temperature) {
     });
 }
 
-async function handleCodeComments(selectedText) {
+async function handleCodeComments(selectedText , title) {
     const messages = [
       {
         role: "system",
@@ -138,7 +138,7 @@ async function handleCodeComments(selectedText) {
       chrome.windows.create({
           url: "popup.html",
           type: "popup",
-          width: 400,
+          width: 600,
           height: 300
         }, function(window) {
           currentWindowId = window.id;
@@ -146,7 +146,7 @@ async function handleCodeComments(selectedText) {
           // Create a new listener with a closure
           currentListener = function handleMessage(request, sender, sendResponse) {
             if (request.action === "getImprovedText") {
-              sendResponse({ text: commentedCode });
+              sendResponse({ text: commentedCode  , title: title});
             }
           };
           chrome.runtime.onMessage.addListener(currentListener);
@@ -194,7 +194,7 @@ async function handleCodeComments(selectedText) {
     }
   }
 
-  function handleSummarize(selectedText) {
+  function handleSummarize(selectedText , title) {
     const messages = [
       {
         role: "system",
@@ -234,7 +234,7 @@ async function handleCodeComments(selectedText) {
           // Create a new listener with a closure
           currentListener = function handleMessage(request, sender, sendResponse) {
             if (request.action === "getImprovedText") {
-              sendResponse({ text: summary });
+              sendResponse({ text: summary , title:title });
             }
           };
           chrome.runtime.onMessage.addListener(currentListener);
@@ -249,7 +249,7 @@ async function handleCodeComments(selectedText) {
       });
   } 
 
-  async function handleGenerateQuiz(selectedText) {
+  async function handleGenerateQuiz(selectedText , title) {
     const messages = [
       {
         role: "system",
@@ -278,18 +278,19 @@ async function handleCodeComments(selectedText) {
       currentWindowId = null;
       currentListener = null;
   
-      chrome.windows.create({
-        url: "popup.html",
-        type: "popup",
-        width: 400,
-        height: 300
-      }, function(window) {
+      chrome.windows.getCurrent(function(currentWindow) {
+        chrome.windows.create({
+          url: "popup.html",
+          type: "popup",
+          width: 700,
+          height: currentWindow.height // Set the height to the current window's height
+        }, function(window) {
         currentWindowId = window.id;
   
         // Create a new listener with a closure
         currentListener = function handleMessage(request, sender, sendResponse) {
           if (request.action === "getImprovedText") {
-            sendResponse({ text: quizQuestions });
+            sendResponse({ text: quizQuestions  , title:title});
           }
         };
         chrome.runtime.onMessage.addListener(currentListener);
@@ -298,6 +299,7 @@ async function handleCodeComments(selectedText) {
         chrome.windows.onRemoved.addListener(handlePopupWindowRemoved);
         window.onRemoved.addListener(handlePopupWindowRemoved);
       });
+    });
     } catch (error) {
       console.error("Error:", error);
     }

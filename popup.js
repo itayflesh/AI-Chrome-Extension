@@ -2,6 +2,10 @@ document.addEventListener('DOMContentLoaded', function() {
     chrome.runtime.sendMessage({ action: "getImprovedText" }, function(response) {
       const commentedCodeContainer = document.getElementById('commentedCode');
       const quizLines = response.text.split('\n');
+      const title = response.title;
+
+      // Update the title element
+      document.getElementById('resultTitle').textContent = title;
   
       quizLines.forEach(line => {
         const lineElement = document.createElement('div');
