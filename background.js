@@ -60,7 +60,6 @@ function handleSelection(selectedText, apiModel, temperature) {
   fetchChatCompletion(messages, 'sk-proj-wQ4taTDDFhbuDrmkqIlOT3BlbkFJlJVo8Zlx0wucOcJ2atou', apiModel, temperature)
     .then(data => {
       var improvedText = data.choices[0].message.content.trim();
-      console.log("Improved Text:", improvedText);
 
       // Close the previous window if it exists
       if (currentWindowId !== null) {
@@ -105,7 +104,7 @@ async function handleCodeComments(selectedText) {
     const messages = [
       {
         role: "system",
-        content: "You are an expert code commentator. First, determine if the given text is a code snippet or not. If it is code, return extactly the same code and add relevant comments to it . If it is not code, respond with a message saying that the provided text is not code."
+        content: "You are an expert code commentator. First, determine if the given text is a code snippet or not. If it is code, return extactly the same code and add relevant comments to it . If it is not code, respond with the message: The provided text is not code."
       },
       {
         role: "user",
@@ -117,52 +116,46 @@ async function handleCodeComments(selectedText) {
       const response = await fetchChatCompletion(messages, 'sk-proj-wQ4taTDDFhbuDrmkqIlOT3BlbkFJlJVo8Zlx0wucOcJ2atou', 'gpt-3.5-turbo', 0.5);
       const result = response.choices[0].message.content.trim();
   
-      if (result.includes("The provided text is not code")) {
-        console.log("The selected text is not code.");
-        // Display a message to the user or handle the non-code case accordingly
-      } else {
-        let commentedCode = result;
-        if (!result.includes('\n')) {
-          // If the result is a single line, add a newline character to make it a multi-line string
-          commentedCode = result + '\n';
-        }
+      let commentedCode = result;
+      if (!result.includes('\n')) {
+        // If the result is a single line, add a newline character to make it a multi-line string
+        commentedCode = result + '\n';
+      }
+  
+      // Close the previous window if it exists
+      if (currentWindowId !== null) {
+        chrome.windows.remove(currentWindowId);
+      }
+
+      // Remove the previous listener if it exists
+      if (currentListener !== null) {
+        chrome.runtime.onMessage.removeListener(currentListener);
+      }
+
+      currentWindowId = null;
+      currentListener = null;
+
+      chrome.windows.create({
+          url: "popup.html",
+          type: "popup",
+          width: 400,
+          height: 300
+        }, function(window) {
+          currentWindowId = window.id;
     
-        console.log("Commented Code:", commentedCode);
-  
-        // Close the previous window if it exists
-        if (currentWindowId !== null) {
-          chrome.windows.remove(currentWindowId);
-        }
-  
-        // Remove the previous listener if it exists
-        if (currentListener !== null) {
-          chrome.runtime.onMessage.removeListener(currentListener);
-        }
-  
-        currentWindowId = null;
-        currentListener = null;
-  
-        chrome.windows.create({
-            url: "popup.html",
-            type: "popup",
-            width: 400,
-            height: 300
-          }, function(window) {
-            currentWindowId = window.id;
-      
-            // Create a new listener with a closure
-            currentListener = function handleMessage(request, sender, sendResponse) {
-              if (request.action === "getImprovedText") {
-                sendResponse({ text: commentedCode });
-              }
-            };
-            chrome.runtime.onMessage.addListener(currentListener);
-      
-            // Listen for the window being closed programmatically or manually
-            chrome.windows.onRemoved.addListener(handlePopupWindowRemoved);
-            window.onRemoved.addListener(handlePopupWindowRemoved);
-          });
-        }
+          // Create a new listener with a closure
+          currentListener = function handleMessage(request, sender, sendResponse) {
+            if (request.action === "getImprovedText") {
+              sendResponse({ text: commentedCode });
+            }
+          };
+          chrome.runtime.onMessage.addListener(currentListener);
+    
+          // Listen for the window being closed programmatically or manually
+          chrome.windows.onRemoved.addListener(handlePopupWindowRemoved);
+          window.onRemoved.addListener(handlePopupWindowRemoved);
+        });
+        
     } catch (error) {
       console.error("Error:", error);
     }
@@ -216,7 +209,6 @@ async function handleCodeComments(selectedText) {
     fetchChatCompletion(messages, 'sk-proj-wQ4taTDDFhbuDrmkqIlOT3BlbkFJlJVo8Zlx0wucOcJ2atou', 'gpt-3.5-turbo', 0.6)
       .then(data => {
         const summary = data.choices[0].message.content.trim();
-        console.log("Summary:", summary);
   
         // Close the previous window if it exists
         if (currentWindowId !== null) {
@@ -272,9 +264,7 @@ async function handleCodeComments(selectedText) {
     try {
       const response = await fetchChatCompletion(messages, 'sk-proj-wQ4taTDDFhbuDrmkqIlOT3BlbkFJlJVo8Zlx0wucOcJ2atou', 'gpt-3.5-turbo', 0.7);
       const quizQuestions = response.choices[0].message.content.trim();
-  
-      console.log("Quiz Questions:", quizQuestions);
-  
+    
       // Close the previous window if it exists
       if (currentWindowId !== null) {
         chrome.windows.remove(currentWindowId);
