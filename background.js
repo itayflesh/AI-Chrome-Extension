@@ -139,7 +139,7 @@ async function handleCodeComments(selectedText , title) {
           url: "popup.html",
           type: "popup",
           width: 600,
-          height: 300
+          height: 400
         }, function(window) {
           currentWindowId = window.id;
     
