@@ -1,5 +1,6 @@
 let currentWindowId = null;
 let currentListener = null;
+let apiKey = ''; // insert your OpenAI API key here
 
 chrome.contextMenus.create({
   id: "improveEnglish",
@@ -57,7 +58,7 @@ function handleSelection(selectedText, apiModel, temperature , title) {
     }
   ];
 
-  fetchChatCompletion(messages, 'sk-proj-wQ4taTDDFhbuDrmkqIlOT3BlbkFJlJVo8Zlx0wucOcJ2atou', apiModel, temperature)
+  fetchChatCompletion(messages, apiKey, apiModel, temperature)
     .then(data => {
       var improvedText = data.choices[0].message.content.trim();
 
@@ -113,7 +114,7 @@ async function handleCodeComments(selectedText , title) {
     ];
   
     try {
-      const response = await fetchChatCompletion(messages, 'sk-proj-wQ4taTDDFhbuDrmkqIlOT3BlbkFJlJVo8Zlx0wucOcJ2atou', 'gpt-3.5-turbo', 0.5);
+      const response = await fetchChatCompletion(messages, apiKey, 'gpt-3.5-turbo', 0.5);
       const result = response.choices[0].message.content.trim();
   
       let commentedCode = result;
@@ -206,7 +207,7 @@ async function handleCodeComments(selectedText , title) {
       }
     ];
   
-    fetchChatCompletion(messages, 'sk-proj-wQ4taTDDFhbuDrmkqIlOT3BlbkFJlJVo8Zlx0wucOcJ2atou', 'gpt-3.5-turbo', 0.6)
+    fetchChatCompletion(messages, apiKey, 'gpt-3.5-turbo', 0.6)
       .then(data => {
         const summary = data.choices[0].message.content.trim();
   
@@ -262,7 +263,7 @@ async function handleCodeComments(selectedText , title) {
     ];
   
     try {
-      const response = await fetchChatCompletion(messages, 'sk-proj-wQ4taTDDFhbuDrmkqIlOT3BlbkFJlJVo8Zlx0wucOcJ2atou', 'gpt-3.5-turbo', 0.7);
+      const response = await fetchChatCompletion(messages, apiKey, 'gpt-3.5-turbo', 0.7);
       const quizQuestions = response.choices[0].message.content.trim();
     
       // Close the previous window if it exists
