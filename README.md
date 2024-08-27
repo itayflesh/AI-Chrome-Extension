@@ -1,4 +1,4 @@
-# AIEverywhere Chrome Extension
+# AI Chrome Extension
 
 ## Description
 
