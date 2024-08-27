@@ -2,6 +2,8 @@
 
 ## Description
 
+https://drive.google.com/file/d/19B2Bk8bCytj55pRsYwqQvtL4GF3XdtMp/view?usp=share_link
+
 This Chrome browser extension enhances your browsing experience by providing AI-powered text manipulation features. This extension uses the OpenAI GPT-3.5 model to improve text, add comments to code, summarize content, and generate quizzes based on selected text.
 
 ## Features
